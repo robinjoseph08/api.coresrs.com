@@ -1,0 +1,54 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.12.5
+        environment:
+          ENVIRONMENT: test
+      - image: circleci/postgres:11.3
+        environment:
+          POSTGRES_USER: coresrs_admin
+          POSTGRES_DB: coresrs_test
+          POSTGRES_PASSWORD: ""
+    working_directory: ~/api.coresrs.com
+    steps:
+      - restore_cache:
+          keys:
+            - source-v1-{{ .Branch }}-{{ .Revision }}
+            - source-v1-{{ .Branch }}-
+            - source-v1-
+      - checkout
+      - save_cache:
+          key: source-v1-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - ~/api.coresrs.com/.git
+      - restore_cache:
+          keys:
+            - deps-v1-{{ checksum ".go-version" }}-{{ checksum "go.sum" }}
+            - deps-v1-{{ checksum ".go-version" }}-
+            - deps-v1-
+      - run:
+          name: Set up project
+          command: make setup
+      - save_cache:
+          key: deps-v1-{{ checksum ".go-version" }}-{{ checksum "go.sum" }}
+          paths:
+            - ~/.cache/go-build
+            - /go/pkg/mod
+      - run:
+          name: Run linter
+          command: make lint
+      # - run:
+      #     name: Run migrations
+      #     command: make migrate
+      # - run:
+      #     name: Seed database
+      #     command: make seed
+      # - run:
+      #     name: Run tests
+      #     command: make test
+      # - run:
+      #     name: Enforce coverage
+      #     command: make enforce
+      # - store_artifacts:
+      #     path: coverage.out
