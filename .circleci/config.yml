@@ -34,7 +34,7 @@ jobs:
           key: deps-v1-{{ checksum ".go-version" }}-{{ checksum "go.sum" }}
           paths:
             - ~/.cache/go-build
-            - $GOPATH/pkg/mod
+            - /go/pkg/mod
       - run:
           name: Run linter
           command: make lint
